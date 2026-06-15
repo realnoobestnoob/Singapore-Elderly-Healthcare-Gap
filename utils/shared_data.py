@@ -76,8 +76,25 @@ def get_pipeline_data() -> dict:
     To force a recompute (e.g. after new SingStat data is added), delete the
     data/pipeline_cache/ directory and restart the app.
     """
+@st.cache_data(show_spinner="Loading datasets and running clustering…")
+def get_pipeline_data() -> dict:
+    cache_path = os.path.join(CACHE_DIR, "clustered.csv")
+
+    st.write(f"DEBUG CACHE_DIR = {CACHE_DIR}")
+    st.write(f"DEBUG cache exists = {os.path.exists(cache_path)}")
+    st.write(f"DEBUG _cache_complete() = {_cache_complete()}")
+    if os.path.isdir(CACHE_DIR):
+        st.write(f"DEBUG files in cache dir = {os.listdir(CACHE_DIR)}")
+
     if _cache_complete():
-        return _load_from_disk()
+        data = _load_from_disk()
+        st.write(f"DEBUG loaded from disk, clustered rows = {len(data['clustered'])}")
+        st.write(f"DEBUG cluster_label counts = {data['clustered']['cluster_label'].value_counts().to_dict()}")
+        return data
+
+    st.write("DEBUG !! recomputing from scratch (cache incomplete) !!")
+    pop = load_population()
+    ...
 
     pop = load_population()
     feat = build_features(pop)
